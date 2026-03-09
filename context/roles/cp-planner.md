@@ -18,68 +18,59 @@ You are the planner for the zenoh-counter-cpp project.
 
 ## Context
 
-This is a C++ SHM counter publisher with one program:
+This is a C++ SHM counter publisher with one executable:
 
-**counter_pub** -- SHM publisher
-- Opens zenoh session (peer mode by default)
-- Creates PosixShmProvider (pool size 65536, alignment 4)
-- Declares publisher on key expression
-- In a loop: alloc SHM buffer (8 bytes), write little-endian int64, put(move)
-- Signal handler (SIGINT/SIGTERM) for graceful shutdown
-- CLI flags: -k, -e, -l, -i (mirror zenoh-c)
+**counter_pub** -- publishes incrementing int64 via SHM on `demo/counter`
 
 ### Header/Source Separation
 
-The project uses header/source separation:
 - `include/counter/publisher.hpp` -- ShmCounterPublisher class declaration
-- `src/publisher.cpp` -- ShmCounterPublisher implementation
-- `app/main.cpp` -- CLI entry point
+- `src/publisher.cpp` -- implementation
+- `app/main.cpp` -- CLI entry point (arg parsing, signal handling, publish loop)
+- `tests/test_publisher.cpp` -- GoogleTest tests
 
-### zenoh-cpp API Available (v1.7.2)
+### Counter Protocol (must match Dart subscriber)
 
-SHM publish workflow:
-```cpp
-PosixShmProvider provider(MemoryLayout(65536, AllocAlignment({2})));
-auto alloc_result = provider.alloc_gc_defrag_blocking(8, AllocAlignment({0}));
-ZShmMut &&buf = std::get<ZShmMut>(std::move(alloc_result));
-std::memcpy(buf.data(), &counter, sizeof(int64_t));
-pub.put(std::move(buf));
-```
+- Payload: raw little-endian int64 (8 bytes)
+- Key expression: `demo/counter` (default, configurable via -k)
+- Dart decodes: `ByteData.sublistView(bytes).getInt64(0, Endian.little)`
 
-Session configuration:
-```cpp
-Config config = Config::create_default();
-config.insert_json5(Z_CONFIG_CONNECT_KEY, "[\"tcp/127.0.0.1:7447\"]");
-config.insert_json5("listen/endpoints", "[\"tcp/0.0.0.0:7447\"]");
-auto session = Session::open(std::move(config));
-```
+### zenoh-cpp SHM Reference
 
-Publisher:
-```cpp
-auto pub = session.declare_publisher(KeyExpr("demo/counter"));
-pub.put(std::move(buf));  // SHM zero-copy
-pub.put(Bytes(raw_bytes)); // standard path
-```
+Read `ext/zenoh-cpp/examples/zenohc/z_pub_shm.cxx` for the canonical SHM
+publish pattern. Key API:
 
-### Reference Examples
+- `PosixShmProvider(MemoryLayout(size, AllocAlignment({n})))` -- create provider
+- `provider.alloc_gc_defrag_blocking(size, alignment)` -- alloc SHM buffer
+- `std::get<ZShmMut>(std::move(result))` -- extract mutable buffer from variant
+- `std::memcpy(buf.data(), &counter, sizeof(int64_t))` -- write to SHM
+- `pub.put(std::move(buf))` -- publish via SHM zero-copy (moves ownership)
 
-- `zenoh-cpp/examples/zenohc/z_pub_shm.cxx` -- SHM publish pattern
-- `zenoh-c/examples/z_pub_shm.c` -- C SHM publish pattern
-- `zenoh-counter-dart/lib/counter_pub.dart` -- Dart equivalent (must match protocol)
+### CLI Flags (mirror zenoh-c)
+
+- `-k, --key` -- key expression
+- `-e, --connect` -- connect endpoint (repeatable)
+- `-l, --listen` -- listen endpoint (repeatable)
+- `-i, --interval` -- publish interval in milliseconds
+
+### Standards and Conventions
+
+For C++ coding standards, TDD workflow, CMake patterns, commit conventions,
+and GoogleTest usage, see `context/standards/`. These are loaded automatically
+by Claude Code.
 
 ## Planning Approach
 
 - Each slice = one testable behavior
-- CLI arg parsing is a slice (or part of setup)
+- Build system setup (CMake for zenoh-c/cpp) is a prerequisite, not a slice
 - SHM alloc + int64 encoding is a slice
-- Publish loop is a slice
+- CLI arg parsing can be part of the main executable slice
 - Keep total slice count small -- this is MVP
-- Header/source separation: test the class, not main()
+- Test the class (publisher.hpp/cpp), not main()
 
 ## Constraints
 
-- C++20 standard (GoogleTest requires C++17 minimum)
-- Google C++ Style Guide (clang-format, clang-tidy)
-- zenoh-c must be built with SHM support before tests can run
+- zenoh-c must be built with SHM + unstable API support before tests run
 - RPATH set in CMake for runtime library discovery
 - No state machine -- just increment and publish
+- `ZENOHCXX_ZENOHC` must be defined (zenoh-cpp uses zenoh-c backend)

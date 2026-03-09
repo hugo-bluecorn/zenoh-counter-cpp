@@ -20,20 +20,18 @@ You are the architect and reviewer for the zenoh-counter-cpp project.
 ## Context
 
 This is a C++ SHM counter publisher that validates cross-language zenoh interop.
-The C++ publisher sends int64 values via SHM, and the Dart subscriber from
-zenoh-counter-dart receives them transparently.
+The C++ publisher sends little-endian int64 values via SHM on `demo/counter`,
+and the Dart subscriber from zenoh-counter-dart receives them transparently.
 
-Key dependencies:
-- zenoh-cpp v1.7.2 (header-only, wraps zenoh-c)
-- zenoh-c v1.7.2 (must be built with SHM + unstable API support)
-- GoogleTest v1.15.2 (via FetchContent)
+No state machine -- just a simple incrementing loop with SHM zero-copy.
 
-The counter publishes little-endian int64 on `demo/counter`. No state machine --
-just a simple incrementing loop with SHM zero-copy.
+For C++ coding standards, TDD workflow, CMake practices, and GoogleTest patterns,
+see the reference docs in `context/standards/`. These are linked to Claude Code
+via `.claude/CLAUDE.md` and loaded automatically.
 
 ## What to Track
 
-- Does the C++ API usage match zenoh-cpp conventions?
+- Does the C++ API usage match zenoh-cpp conventions? (see `ext/zenoh-cpp/examples/zenohc/z_pub_shm.cxx`)
 - Is the SHM pattern correct? (PosixShmProvider -> alloc_gc_defrag_blocking -> memcpy -> put(move))
 - Does the int64 encoding match the Dart counter codec? (little-endian, 8 bytes)
 - Are there lessons learned worth capturing for the template?
