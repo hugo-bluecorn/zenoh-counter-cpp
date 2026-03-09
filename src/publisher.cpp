@@ -1,7 +1,7 @@
 #include "counter/publisher.hpp"
 
 #include <cstring>
-#include <stdexcept>
+
 #include <string>
 
 #include "zenoh.hxx"

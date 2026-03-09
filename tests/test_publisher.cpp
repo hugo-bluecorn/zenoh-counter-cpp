@@ -2,11 +2,11 @@
 
 #include <chrono>
 #include <cstring>
+
+#include <gtest/gtest.h>
 #include <mutex>
 #include <thread>
 #include <vector>
-
-#include <gtest/gtest.h>
 
 #include "zenoh.hxx"
 
@@ -78,7 +78,8 @@ TEST(ShmCounterPublisherTest, PublishIncrementsCounterAndSendsInt64) {
     for (int i = 0; i < 30; ++i) {
         {
             std::lock_guard<std::mutex> lock(mtx);
-            if (received.size() >= 1) break;
+            if (received.size() >= 1)
+                break;
         }
         std::this_thread::sleep_for(100ms);
     }
@@ -122,7 +123,8 @@ TEST(ShmCounterPublisherTest, MultiplePublishesSendIncrementingSequence) {
     for (int i = 0; i < 30; ++i) {
         {
             std::lock_guard<std::mutex> lock(mtx);
-            if (received.size() >= 3) break;
+            if (received.size() >= 3)
+                break;
         }
         std::this_thread::sleep_for(100ms);
     }
@@ -162,7 +164,8 @@ TEST(ShmCounterPublisherTest, PayloadIsExactly8Bytes) {
     for (int i = 0; i < 30; ++i) {
         {
             std::lock_guard<std::mutex> lock(mtx);
-            if (payload_sizes.size() >= 1) break;
+            if (payload_sizes.size() >= 1)
+                break;
         }
         std::this_thread::sleep_for(100ms);
     }
