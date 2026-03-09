@@ -1,6 +1,8 @@
-#include <mylib/mylib.hpp>
+#include <iostream>
+
+#include "counter/publisher.hpp"
 
 int main() {
-    mylib::PrintGreeting();
+    std::cout << "counter_pub: not yet implemented\n";
     return 0;
 }

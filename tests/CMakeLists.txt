@@ -1,18 +1,18 @@
 # Test executable
-add_executable(mylib_tests
-    test_mylib.cpp
+add_executable(publisher_tests
+    test_publisher.cpp
 )
 
 # Link against library and GoogleTest
-target_link_libraries(mylib_tests
+target_link_libraries(publisher_tests
     PRIVATE
-        mylib::mylib
+        counter::counter
         GTest::gtest_main
 )
 
 # Discover tests for CTest
 include(GoogleTest)
-gtest_discover_tests(mylib_tests
+gtest_discover_tests(publisher_tests
     PROPERTIES
         LABELS "unit"
 )
