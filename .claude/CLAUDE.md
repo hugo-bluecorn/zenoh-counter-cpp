@@ -1,8 +1,10 @@
-# C++ CMake Template - Claude Code Configuration
+# zenoh-counter-cpp - Claude Code Configuration
 
 ## Project Overview
 
-Modern C++20 project template using CMake, GoogleTest, and code quality tools.
+C++ SHM counter publisher using zenoh-cpp v1.7.2. Publishes incrementing
+little-endian int64 on `demo/counter` via shared memory. Companion to
+zenoh-counter-dart (Dart subscriber).
 
 ## Development Rules
 
@@ -11,14 +13,8 @@ Modern C++20 project template using CMake, GoogleTest, and code quality tools.
 1. **TDD is mandatory** - All new features must follow Red-Green-Refactor
 2. **Google C++ Style Guide** - Enforced via clang-format and clang-tidy
 3. **Feature branches** - Never commit directly to main
-4. **CHANGELOG updates** - Required before every commit
+4. **CHANGELOG updates** - Required before every release
 5. **Tests must pass** - No commits with failing tests
-
-### TDD Commands
-
-- `/tdd-new <feature>` - Create TDD task and feature notes
-- `/tdd-test` - Run tests with phase context
-- `/tdd-workflow <task>` - Execute full TDD workflow
 
 ### Build Commands
 
@@ -43,7 +39,10 @@ cmake --build build-tdd-asan --target coverage
 
 ```bash
 # Format code
-clang-format -i src/*.cpp include/mylib/*.hpp
+clang-format -i src/*.cpp include/counter/*.hpp app/*.cpp tests/*.cpp
+
+# Check formatting
+clang-format --dry-run -Werror src/*.cpp include/counter/*.hpp
 
 # Static analysis
 clang-tidy -p build src/*.cpp
@@ -65,20 +64,21 @@ clang-tidy -p build src/*.cpp
 
 ```
 .
-├── include/mylib/     # Public headers
+├── include/counter/   # Public headers (ShmCounterPublisher)
 ├── src/               # Library implementation
-├── app/               # Application executable
-├── tests/             # Unit tests
-├── cmake/             # CMake modules
+├── app/               # CLI executable (main.cpp)
+├── tests/             # Unit + integration tests (GoogleTest)
+├── cmake/             # CMake modules (Coverage.cmake)
 ├── context/           # Reference documentation
+│   ├── roles/         # CA/CP/CI session prompts
 │   ├── standards/     # Coding standards & guidelines
 │   ├── libraries/     # Project-specific library docs
 │   └── project/       # Project-specific docs (human reference)
 ├── ext/               # External submodules
+│   ├── zenoh-c/       # v1.7.2 (must be built with SHM support)
+│   └── zenoh-cpp/     # v1.7.2 (header-only)
+├── issues/            # Issue specifications
 └── .claude/           # Claude Code configuration
-    ├── commands/      # TDD slash commands
-    ├── templates/     # Feature templates
-    └── tdd-tasks/     # TDD task files
 ```
 
 ## Quick Reference
@@ -87,12 +87,12 @@ clang-tidy -p build src/*.cpp
 
 | Element | Style | Example |
 |---------|-------|---------|
-| Files | `snake_case` | `my_class.cpp` |
-| Classes | `PascalCase` | `MyClass` |
-| Functions | `PascalCase` | `GetValue()` |
+| Files | `snake_case` | `publisher.cpp` |
+| Classes | `PascalCase` | `ShmCounterPublisher` |
+| Functions | `PascalCase` | `Publish()` |
 | Variables | `snake_case` | `buffer_size` |
-| Members | `snake_case_` | `buffer_size_` |
-| Constants | `kPascalCase` | `kMaxSize` |
+| Members | `snake_case_` | `counter_` |
+| Constants | `kPascalCase` | `kDefaultKey` |
 
 ### Commit Types
 
@@ -103,7 +103,8 @@ clang-tidy -p build src/*.cpp
 | `refactor` | Restructure without behavior change |
 | `test` | Add/fix tests (existing code) |
 | `docs` | Documentation only |
-| `build` | CMake, dependencies |
+| `build` | CMake, dependencies, submodules |
+| `chore` | Config, cleanup |
 
 ### TDD Phases
 

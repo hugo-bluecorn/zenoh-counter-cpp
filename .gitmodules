@@ -1,0 +1,6 @@
+[submodule "ext/zenoh-c"]
+	path = ext/zenoh-c
+	url = https://github.com/eclipse-zenoh/zenoh-c.git
+[submodule "ext/zenoh-cpp"]
+	path = ext/zenoh-cpp
+	url = https://github.com/eclipse-zenoh/zenoh-cpp.git
