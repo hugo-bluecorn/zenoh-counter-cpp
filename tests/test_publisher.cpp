@@ -175,5 +175,154 @@ TEST(ShmCounterPublisherTest, PayloadIsExactly8Bytes) {
     EXPECT_EQ(payload_sizes[0], sizeof(int64_t));
 }
 
+// --- Integration Tests (Slice 4) ---
+
+TEST(ShmCounterPublisherIntegrationTest,
+     PublisherOnListenSessionDeliversToSubscriberOnConnectSession) {
+    ShmCounterPublisher pub("demo/counter", {}, {"tcp/0.0.0.0:7460"});
+
+    auto config = Config::create_default();
+    config.insert_json5(Z_CONFIG_CONNECT_KEY, R"(["tcp/127.0.0.1:7460"])");
+    auto sub_session = Session::open(std::move(config));
+
+    std::vector<int64_t> received;
+    std::mutex mtx;
+
+    auto subscriber = sub_session.declare_subscriber(
+        KeyExpr("demo/counter"),
+        [&received, &mtx](Sample& sample) {
+            auto bytes = sample.get_payload().as_vector();
+            if (bytes.size() == sizeof(int64_t)) {
+                int64_t value;
+                std::memcpy(&value, bytes.data(), sizeof(int64_t));
+                std::lock_guard<std::mutex> lock(mtx);
+                received.push_back(value);
+            }
+        },
+        closures::none);
+
+    std::this_thread::sleep_for(500ms);
+
+    pub.Publish();
+
+    for (int i = 0; i < 30; ++i) {
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            if (received.size() >= 1)
+                break;
+        }
+        std::this_thread::sleep_for(100ms);
+    }
+
+    EXPECT_EQ(pub.Counter(), 1);
+
+    std::lock_guard<std::mutex> lock(mtx);
+    ASSERT_EQ(received.size(), 1u);
+    EXPECT_EQ(received[0], pub.Counter());
+}
+
+TEST(ShmCounterPublisherIntegrationTest,
+     MultiplePublishesReceivedAcrossSessions) {
+    ShmCounterPublisher pub("demo/counter", {}, {"tcp/0.0.0.0:7461"});
+
+    auto config = Config::create_default();
+    config.insert_json5(Z_CONFIG_CONNECT_KEY, R"(["tcp/127.0.0.1:7461"])");
+    auto sub_session = Session::open(std::move(config));
+
+    std::vector<int64_t> received;
+    std::mutex mtx;
+
+    auto subscriber = sub_session.declare_subscriber(
+        KeyExpr("demo/counter"),
+        [&received, &mtx](Sample& sample) {
+            auto bytes = sample.get_payload().as_vector();
+            if (bytes.size() == sizeof(int64_t)) {
+                int64_t value;
+                std::memcpy(&value, bytes.data(), sizeof(int64_t));
+                std::lock_guard<std::mutex> lock(mtx);
+                received.push_back(value);
+            }
+        },
+        closures::none);
+
+    std::this_thread::sleep_for(500ms);
+
+    for (int i = 0; i < 5; ++i) {
+        pub.Publish();
+    }
+
+    for (int i = 0; i < 30; ++i) {
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            if (received.size() >= 5)
+                break;
+        }
+        std::this_thread::sleep_for(100ms);
+    }
+
+    EXPECT_EQ(pub.Counter(), 5);
+
+    std::lock_guard<std::mutex> lock(mtx);
+    ASSERT_EQ(received.size(), 5u);
+    for (int i = 0; i < 5; ++i) {
+        EXPECT_EQ(received[i], i + 1);
+    }
+}
+
+TEST(ShmCounterPublisherIntegrationTest,
+     SubscriberReceivesCorrectByteEncodingCrossSession) {
+    ShmCounterPublisher pub("demo/counter", {}, {"tcp/0.0.0.0:7462"});
+
+    auto config = Config::create_default();
+    config.insert_json5(Z_CONFIG_CONNECT_KEY, R"(["tcp/127.0.0.1:7462"])");
+    auto sub_session = Session::open(std::move(config));
+
+    std::vector<std::vector<uint8_t>> raw_payloads;
+    std::vector<int64_t> received;
+    std::mutex mtx;
+
+    auto subscriber = sub_session.declare_subscriber(
+        KeyExpr("demo/counter"),
+        [&raw_payloads, &received, &mtx](Sample& sample) {
+            auto bytes = sample.get_payload().as_vector();
+            std::lock_guard<std::mutex> lock(mtx);
+            raw_payloads.push_back(bytes);
+            if (bytes.size() == sizeof(int64_t)) {
+                int64_t value;
+                std::memcpy(&value, bytes.data(), sizeof(int64_t));
+                received.push_back(value);
+            }
+        },
+        closures::none);
+
+    std::this_thread::sleep_for(500ms);
+
+    // Publish 100 times to reach a large counter value.
+    for (int i = 0; i < 100; ++i) {
+        pub.Publish();
+    }
+
+    for (int i = 0; i < 30; ++i) {
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            if (received.size() >= 100)
+                break;
+        }
+        std::this_thread::sleep_for(100ms);
+    }
+
+    EXPECT_EQ(pub.Counter(), 100);
+
+    std::lock_guard<std::mutex> lock(mtx);
+    ASSERT_GE(received.size(), 1u);
+
+    // Verify the last received payload is exactly 8 bytes and decodes correctly.
+    auto& last_raw = raw_payloads.back();
+    EXPECT_EQ(last_raw.size(), sizeof(int64_t));
+
+    int64_t last_value = received.back();
+    EXPECT_EQ(last_value, static_cast<int64_t>(received.size()));
+}
+
 }  // namespace
 }  // namespace counter
