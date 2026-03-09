@@ -8,14 +8,29 @@
 using namespace zenoh;
 
 namespace counter {
+namespace {
+
+constexpr size_t kShmPoolSize = 65536;
+
+// Formats a list of endpoints as a JSON5 array string for zenoh config.
+std::string FormatEndpointsJson(const std::vector<std::string>& endpoints) {
+    std::string json = "[";
+    for (size_t i = 0; i < endpoints.size(); ++i) {
+        if (i > 0) json += ",";
+        json += "\"" + endpoints[i] + "\"";
+    }
+    json += "]";
+    return json;
+}
+
+}  // namespace
 
 struct ShmCounterPublisher::Impl {
     Session session;
     Publisher publisher;
     PosixShmProvider shm_provider;
 
-    Impl(Session session, Publisher publisher,
-         PosixShmProvider shm_provider)
+    Impl(Session session, Publisher publisher, PosixShmProvider shm_provider)
         : session(std::move(session)),
           publisher(std::move(publisher)),
           shm_provider(std::move(shm_provider)) {}
@@ -29,28 +44,19 @@ ShmCounterPublisher::ShmCounterPublisher(
     auto config = Config::create_default();
 
     if (!connect_endpoints.empty()) {
-        std::string json = "[";
-        for (size_t i = 0; i < connect_endpoints.size(); ++i) {
-            if (i > 0) json += ",";
-            json += "\"" + connect_endpoints[i] + "\"";
-        }
-        json += "]";
-        config.insert_json5(Z_CONFIG_CONNECT_KEY, json.c_str());
+        config.insert_json5(Z_CONFIG_CONNECT_KEY,
+                            FormatEndpointsJson(connect_endpoints).c_str());
     }
 
     if (!listen_endpoints.empty()) {
-        std::string json = "[";
-        for (size_t i = 0; i < listen_endpoints.size(); ++i) {
-            if (i > 0) json += ",";
-            json += "\"" + listen_endpoints[i] + "\"";
-        }
-        json += "]";
-        config.insert_json5(Z_CONFIG_LISTEN_KEY, json.c_str());
+        config.insert_json5(Z_CONFIG_LISTEN_KEY,
+                            FormatEndpointsJson(listen_endpoints).c_str());
     }
 
     auto session = Session::open(std::move(config));
     auto publisher = session.declare_publisher(KeyExpr(key_expr));
-    PosixShmProvider shm_provider(MemoryLayout(65536, AllocAlignment({2})));
+    PosixShmProvider shm_provider(
+        MemoryLayout(kShmPoolSize, AllocAlignment({2})));
 
     impl_ = std::make_unique<Impl>(std::move(session), std::move(publisher),
                                    std::move(shm_provider));
