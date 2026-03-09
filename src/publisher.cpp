@@ -16,7 +16,8 @@ constexpr size_t kShmPoolSize = 65536;
 std::string FormatEndpointsJson(const std::vector<std::string>& endpoints) {
     std::string json = "[";
     for (size_t i = 0; i < endpoints.size(); ++i) {
-        if (i > 0) json += ",";
+        if (i > 0)
+            json += ",";
         json += "\"" + endpoints[i] + "\"";
     }
     json += "]";
@@ -68,6 +69,8 @@ void ShmCounterPublisher::Publish() {
     throw std::runtime_error("Not implemented");
 }
 
-int64_t ShmCounterPublisher::Counter() const { return counter_; }
+int64_t ShmCounterPublisher::Counter() const {
+    return counter_;
+}
 
 }  // namespace counter

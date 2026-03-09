@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -8,24 +9,24 @@
 namespace counter {
 
 class ShmCounterPublisher {
- public:
-  explicit ShmCounterPublisher(
-      const std::string& key_expr = "demo/counter",
-      const std::vector<std::string>& connect_endpoints = {},
-      const std::vector<std::string>& listen_endpoints = {});
+  public:
+    explicit ShmCounterPublisher(
+        const std::string& key_expr = "demo/counter",
+        const std::vector<std::string>& connect_endpoints = {},
+        const std::vector<std::string>& listen_endpoints = {});
 
-  ShmCounterPublisher(const ShmCounterPublisher&) = delete;
-  ShmCounterPublisher& operator=(const ShmCounterPublisher&) = delete;
+    ShmCounterPublisher(const ShmCounterPublisher&) = delete;
+    ShmCounterPublisher& operator=(const ShmCounterPublisher&) = delete;
 
-  ~ShmCounterPublisher();
+    ~ShmCounterPublisher();
 
-  void Publish();
-  int64_t Counter() const;
+    void Publish();
+    int64_t Counter() const;
 
- private:
-  struct Impl;
-  std::unique_ptr<Impl> impl_;
-  int64_t counter_ = 0;
+  private:
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
+    int64_t counter_ = 0;
 };
 
 }  // namespace counter
