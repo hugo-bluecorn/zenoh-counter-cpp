@@ -1,5 +1,6 @@
 #include "counter/publisher.hpp"
 
+#include <cstring>
 #include <stdexcept>
 #include <string>
 
@@ -66,7 +67,12 @@ ShmCounterPublisher::ShmCounterPublisher(
 ShmCounterPublisher::~ShmCounterPublisher() = default;
 
 void ShmCounterPublisher::Publish() {
-    throw std::runtime_error("Not implemented");
+    ++counter_;
+    auto alloc_result = impl_->shm_provider.alloc_gc_defrag_blocking(
+        sizeof(int64_t), AllocAlignment({0}));
+    auto buf = std::get<ZShmMut>(std::move(alloc_result));
+    std::memcpy(buf.data(), &counter_, sizeof(int64_t));
+    impl_->publisher.put(std::move(buf));
 }
 
 int64_t ShmCounterPublisher::Counter() const {
