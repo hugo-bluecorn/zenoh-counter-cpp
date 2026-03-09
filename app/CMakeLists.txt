@@ -1,10 +1,10 @@
 # Executable target
-add_executable(${PROJECT_NAME}_app
+add_executable(counter_pub
     main.cpp
 )
 
 # Link against library
-target_link_libraries(${PROJECT_NAME}_app
+target_link_libraries(counter_pub
     PRIVATE
-        mylib::mylib
+        counter::counter
 )

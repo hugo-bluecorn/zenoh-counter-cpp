@@ -5,7 +5,7 @@ if(POLICY CMP0135)
     cmake_policy(SET CMP0135 NEW)
 endif()
 
-project(claude_cpp_template VERSION 0.1.0 LANGUAGES CXX)
+project(zenoh_counter_cpp VERSION 0.2.0 LANGUAGES CXX)
 
 # C++20 standard (GoogleTest requires C++17 minimum)
 set(CMAKE_CXX_STANDARD 20)
@@ -26,6 +26,45 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 if(ENABLE_COVERAGE)
     include(Coverage)
 endif()
+
+# ---------------------------------------------------------------------------
+# zenoh-c (shared library, must be pre-built)
+# ---------------------------------------------------------------------------
+set(ZENOHC_LIB "${CMAKE_SOURCE_DIR}/ext/zenoh-c/target/release/libzenohc.so")
+if(NOT EXISTS "${ZENOHC_LIB}")
+    message(FATAL_ERROR
+        "zenoh-c shared library not found at:\n"
+        "  ${ZENOHC_LIB}\n"
+        "Build zenoh-c first. See CLAUDE.md for instructions."
+    )
+endif()
+
+add_library(zenohc SHARED IMPORTED GLOBAL)
+set_target_properties(zenohc PROPERTIES
+    IMPORTED_LOCATION "${ZENOHC_LIB}"
+    IMPORTED_SONAME "libzenohc.so"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/ext/zenoh-c/include"
+)
+
+# ---------------------------------------------------------------------------
+# zenoh-cpp (header-only, wraps zenoh-c)
+# ---------------------------------------------------------------------------
+add_library(zenohcpp INTERFACE)
+target_include_directories(zenohcpp
+    INTERFACE
+        "${CMAKE_SOURCE_DIR}/ext/zenoh-cpp/include"
+)
+target_compile_definitions(zenohcpp
+    INTERFACE
+        ZENOHCXX_ZENOHC
+)
+target_link_libraries(zenohcpp INTERFACE zenohc)
+
+# ---------------------------------------------------------------------------
+# RPATH so executables find libzenohc.so at runtime
+# ---------------------------------------------------------------------------
+set(CMAKE_BUILD_RPATH "${CMAKE_SOURCE_DIR}/ext/zenoh-c/target/release")
+set(CMAKE_INSTALL_RPATH "${CMAKE_SOURCE_DIR}/ext/zenoh-c/target/release")
 
 # Library
 add_subdirectory(src)
