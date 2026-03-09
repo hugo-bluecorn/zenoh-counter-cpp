@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -22,6 +23,8 @@ class ShmCounterPublisher {
   int64_t Counter() const;
 
  private:
+  struct Impl;
+  std::unique_ptr<Impl> impl_;
   int64_t counter_ = 0;
 };
 
