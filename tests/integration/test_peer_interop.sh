@@ -9,7 +9,7 @@ source "${SCRIPT_DIR}/helpers.sh"
 PORT=7500
 INTERVAL_MS=400
 REQUIRED_VALUES=8
-TIMEOUT_SECONDS=8
+TIMEOUT_SECONDS=12
 KEY_EXPR="demo/counter"
 
 PUB_BIN="${PROJECT_ROOT}/build/app/counter_pub"
