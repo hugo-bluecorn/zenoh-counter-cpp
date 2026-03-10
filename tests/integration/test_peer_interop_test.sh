@@ -3,8 +3,6 @@
 HELPERS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${HELPERS_DIR}/helpers.sh"
 
-PROJECT_ROOT="$(cd "${HELPERS_DIR}/../.." && pwd)"
-
 function test_output_parser_extracts_counter_values() {
     local tmpfile
     tmpfile=$(mktemp)
