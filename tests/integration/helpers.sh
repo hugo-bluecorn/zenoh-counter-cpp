@@ -63,12 +63,20 @@ cleanup() {
 # Extracts integer values from "Received: N" lines
 # Prints space-separated values to stdout
 parse_dart_output() {
-    return 1  # Not implemented
+    local file="$1"
+    grep -oP 'Received: \K[0-9]+' "$file" | tr '\n' ' ' | sed 's/ $//'
 }
 
 # check_incrementing <value1> <value2> ...
-# Validates monotonically increasing sequence
-# Returns 0 if valid, 1 otherwise (with error to stderr)
+# Returns 0 if strictly increasing, 1 otherwise
 check_incrementing() {
-    return 1  # Not implemented
+    local prev=0
+    for val in "$@"; do
+        if [[ "$val" -le "$prev" ]]; then
+            echo "ERROR: $val not incrementing (previous: $prev)" >&2
+            return 1
+        fi
+        prev="$val"
+    done
+    return 0
 }
