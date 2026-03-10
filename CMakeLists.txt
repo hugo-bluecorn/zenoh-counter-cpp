@@ -5,7 +5,7 @@ if(POLICY CMP0135)
     cmake_policy(SET CMP0135 NEW)
 endif()
 
-project(zenoh_counter_cpp VERSION 0.3.0 LANGUAGES CXX)
+project(zenoh_counter_cpp VERSION 0.4.0 LANGUAGES CXX)
 
 # C++20 standard (GoogleTest requires C++17 minimum)
 set(CMAKE_CXX_STANDARD 20)

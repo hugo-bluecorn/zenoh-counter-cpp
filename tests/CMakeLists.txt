@@ -53,3 +53,24 @@ gtest_discover_tests(integration_tests
     PROPERTIES
         LABELS "integration"
 )
+
+# Cross-language interop tests (bash scripts)
+add_test(
+    NAME interop_peer_direct
+    COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/integration/test_peer_interop.sh
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(interop_peer_direct PROPERTIES
+    LABELS "interop"
+    TIMEOUT 30
+)
+
+add_test(
+    NAME interop_via_router
+    COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/integration/test_router_interop.sh
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(interop_via_router PROPERTIES
+    LABELS "interop"
+    TIMEOUT 30
+)

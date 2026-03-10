@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-03-10
+
+### Added
+- Cross-language interop test: peer direct topology (C++ pub -> Dart sub on port 7500)
+- Cross-language interop test: router topology (C++ router + C++ pub -> Dart sub on port 7501)
+- Shared test helpers: prerequisite validation, process cleanup, output parsing, incrementing check
+- CTest registration for interop scripts via `ctest -L interop`
+- Prerequisite checks: validates binaries, Dart repo, and fvm before running
+
 ## [0.3.0] - 2026-03-10
 
 ### Added
