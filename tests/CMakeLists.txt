@@ -37,3 +37,19 @@ gtest_discover_tests(subscriber_tests
     PROPERTIES
         LABELS "unit"
 )
+
+# Integration tests (peer direct + router topology)
+add_executable(integration_tests
+    test_integration.cpp
+)
+
+target_link_libraries(integration_tests
+    PRIVATE
+        counter::counter
+        GTest::gtest_main
+)
+
+gtest_discover_tests(integration_tests
+    PROPERTIES
+        LABELS "integration"
+)
