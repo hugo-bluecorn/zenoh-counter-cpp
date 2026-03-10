@@ -1,6 +1,7 @@
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
+#include <cstring>
 
 #include <atomic>
 #include <iostream>
@@ -70,10 +71,51 @@ int main(int argc, char* argv[]) {
 #endif
         std::cout << "Subscribing on '" << key_expr << "'\n";
 
-        // TODO(slice-4): Open session, declare subscriber, dispatch messages
-        (void)connect_endpoints;
-        (void)listen_endpoints;
-        (void)count;
+        auto config = zenoh::Config::create_default();
+
+        if (!connect_endpoints.empty()) {
+            std::string json = "[";
+            for (size_t i = 0; i < connect_endpoints.size(); ++i) {
+                if (i > 0)
+                    json += ",";
+                json += "\"" + connect_endpoints[i] + "\"";
+            }
+            json += "]";
+            config.insert_json5(Z_CONFIG_CONNECT_KEY, json.c_str());
+        }
+
+        if (!listen_endpoints.empty()) {
+            std::string json = "[";
+            for (size_t i = 0; i < listen_endpoints.size(); ++i) {
+                if (i > 0)
+                    json += ",";
+                json += "\"" + listen_endpoints[i] + "\"";
+            }
+            json += "]";
+            config.insert_json5(Z_CONFIG_LISTEN_KEY, json.c_str());
+        }
+
+        auto session = zenoh::Session::open(std::move(config));
+
+        std::atomic<int> received{0};
+        auto subscriber = session.declare_subscriber(
+            zenoh::KeyExpr(key_expr),
+            [&](zenoh::Sample& sample) {
+                auto bytes = sample.get_payload().as_vector();
+                if (bytes.size() != sizeof(int64_t)) {
+                    std::cerr << "Warning: unexpected payload size "
+                              << bytes.size() << "\n";
+                    return;
+                }
+                int64_t value;
+                std::memcpy(&value, bytes.data(), sizeof(int64_t));
+                std::cout << "[" << value << "] Received on '" << key_expr
+                          << "'\n";
+                if (count > 0 && received.fetch_add(1) + 1 >= count) {
+                    g_running.store(false);
+                }
+            },
+            zenoh::closures::none);
 
         while (g_running.load()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
