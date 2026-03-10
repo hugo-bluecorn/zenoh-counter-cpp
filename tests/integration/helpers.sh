@@ -50,5 +50,11 @@ check_prereqs() {
 PIDS=()
 
 cleanup() {
-    return 1  # Not implemented
+    for pid in "${PIDS[@]}"; do
+        kill "$pid" 2>/dev/null || true
+    done
+    for pid in "${PIDS[@]}"; do
+        wait "$pid" 2>/dev/null || true
+    done
+    return 0
 }
