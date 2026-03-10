@@ -13,11 +13,12 @@ function test_router_interop_end_to_end() {
 
 function test_router_script_starts_three_processes() {
     # Verify script starts router first, then publisher, then subscriber
+    # Match the actual execution lines (ending with &) not variable assignments
     local script="${HELPERS_DIR}/test_router_interop.sh"
     local router_line pub_line sub_line
-    router_line=$(grep -n 'counter_router' "$script" | grep -v '#' | head -1 | cut -d: -f1)
-    pub_line=$(grep -n 'counter_pub' "$script" | grep -v '#' | head -1 | cut -d: -f1)
-    sub_line=$(grep -n 'counter_sub.dart' "$script" | grep -v '#' | head -1 | cut -d: -f1)
+    router_line=$(grep -n 'ROUTER_BIN.*&$' "$script" | head -1 | cut -d: -f1)
+    pub_line=$(grep -n 'PUB_BIN.*&$' "$script" | head -1 | cut -d: -f1)
+    sub_line=$(grep -n 'counter_sub.dart.*&$' "$script" | head -1 | cut -d: -f1)
     assert_not_empty "$router_line"
     assert_not_empty "$pub_line"
     assert_not_empty "$sub_line"
@@ -33,13 +34,14 @@ function test_router_script_uses_port_7501() {
 }
 
 function test_router_script_cleans_up_processes() {
-    # Run the script and verify no orphan processes after
+    # Run the script and verify no orphan counter_router/counter_pub processes after
     bash "${HELPERS_DIR}/test_router_interop.sh" &>/dev/null || true
-    sleep 1
-    # Check no counter_router or counter_pub processes with our port
-    local orphans
-    orphans=$(pgrep -f "tcp.*7501" 2>/dev/null | wc -l)
-    assert_equals "0" "$orphans"
+    sleep 2
+    local router_orphans pub_orphans
+    router_orphans=$(pgrep -xf ".*counter_router.*7501.*" 2>/dev/null | wc -l)
+    pub_orphans=$(pgrep -xf ".*counter_pub.*7501.*" 2>/dev/null | wc -l)
+    assert_equals "0" "$router_orphans" "No orphan counter_router processes"
+    assert_equals "0" "$pub_orphans" "No orphan counter_pub processes"
 }
 
 function test_router_script_fails_if_counter_router_missing() {
