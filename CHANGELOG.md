@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-03-10
+
+### Added
+- counter_sub executable: subscribes to key expression, decodes LE int64, prints `[N] Received on '<key>'`
+- counter_sub CLI flags: -k/--key, -e/--connect, -l/--listen, -n/--count, -h/--help
+- counter_sub -n flag exits after N messages; SIGINT/SIGTERM graceful shutdown
+- counter_router executable: opens zenoh session in router mode, listens on configurable endpoint
+- counter_router CLI flags: -l/--listen (default tcp/0.0.0.0:7447), -h/--help
+- Subscriber decode tests: single int64, incrementing sequence, count flag, malformed payload handling
+- Integration tests: peer-direct topology (pub listen, sub connect) and via-router topology (3 sessions)
+- scripts/demo.sh: starts router + publisher + subscriber together with signal cleanup
+
 ## [0.2.0] - 2026-03-09
 
 ### Added
