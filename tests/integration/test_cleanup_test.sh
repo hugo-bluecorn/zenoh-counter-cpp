@@ -35,8 +35,7 @@ function test_cleanup_handles_already_dead_processes() {
     wait "${PIDS[0]}" 2>/dev/null  # Wait for it to die
 
     # When: cleanup is called (should not error)
-    local output
-    output=$(cleanup 2>&1)
+    cleanup &>/dev/null
     local exit_code=$?
 
     # Then: no error
@@ -48,8 +47,7 @@ function test_cleanup_with_no_tracked_pids() {
     PIDS=()
 
     # When: cleanup is called
-    local output
-    output=$(cleanup 2>&1)
+    cleanup &>/dev/null
     local exit_code=$?
 
     # Then: returns 0, no errors
