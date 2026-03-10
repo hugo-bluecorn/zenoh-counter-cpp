@@ -130,7 +130,7 @@ TEST(SubscriberDecodeTest, CountFlagExitsAfterNMessages) {
     });
 
     std::string cmd = std::string("timeout 10 ") + COUNTER_SUB_BIN +
-                       " -e tcp/127.0.0.1:7482 -n 3 2>&1";
+                      " -e tcp/127.0.0.1:7482 -n 3 2>&1";
     FILE* pipe = popen(cmd.c_str(), "r");
     ASSERT_NE(pipe, nullptr);
 
