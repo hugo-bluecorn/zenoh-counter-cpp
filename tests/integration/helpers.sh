@@ -58,3 +58,17 @@ cleanup() {
     done
     return 0
 }
+
+# parse_dart_output <output_file>
+# Extracts integer values from "Received: N" lines
+# Prints space-separated values to stdout
+parse_dart_output() {
+    return 1  # Not implemented
+}
+
+# check_incrementing <value1> <value2> ...
+# Validates monotonically increasing sequence
+# Returns 0 if valid, 1 otherwise (with error to stderr)
+check_incrementing() {
+    return 1  # Not implemented
+}
