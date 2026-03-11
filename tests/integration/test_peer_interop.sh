@@ -14,7 +14,6 @@ KEY_EXPR="demo/counter"
 
 PUB_BIN="${PROJECT_ROOT}/build/app/counter_pub"
 DART_REPO="${PROJECT_ROOT}/../zenoh-counter-dart"
-ZENOH_DART_ROOT="${PROJECT_ROOT}/../zenoh_dart"
 
 # Trap for cleanup
 trap cleanup EXIT INT TERM
@@ -26,16 +25,6 @@ echo ""
 
 # Check prerequisites
 check_prereqs "$PUB_BIN" "$DART_REPO"
-
-# Verify zenoh_dart native libraries exist
-if [[ ! -f "${ZENOH_DART_ROOT}/build/libzenoh_dart.so" ]]; then
-    echo "ERROR: libzenoh_dart.so not found at ${ZENOH_DART_ROOT}/build/" >&2
-    echo "Build zenoh_dart first: see zenoh-counter-dart README" >&2
-    exit 1
-fi
-
-# Set LD_LIBRARY_PATH for Dart subscriber
-export LD_LIBRARY_PATH="${ZENOH_DART_ROOT}/extern/zenoh-c/target/release:${ZENOH_DART_ROOT}/build${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
 # Start C++ publisher (listening)
 "$PUB_BIN" -k "$KEY_EXPR" -l "tcp/0.0.0.0:${PORT}" -i "$INTERVAL_MS" &

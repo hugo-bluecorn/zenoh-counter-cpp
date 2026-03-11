@@ -150,7 +150,7 @@ Run the C++ publisher and Dart subscriber together:
 
 # Terminal 2: Dart subscriber (zenoh-counter-dart repo)
 cd /path/to/zenoh-counter-dart
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH fvm dart run bin/counter_sub.dart -e tcp/127.0.0.1:7448
+fvm dart run bin/counter_sub.dart -e tcp/127.0.0.1:7448
 ```
 
 ## Architecture
