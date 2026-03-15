@@ -28,7 +28,7 @@ This is the second of three template repos:
 |------|---------|--------|
 | [zenoh-counter-dart](https://github.com/hugo-bluecorn/zenoh-counter-dart) | Pure Dart CLI, validates package:zenoh + SHM | v0.1.1 |
 | **zenoh-counter-cpp** (this) | C++ SHM publisher, validates cross-language interop | v0.4.0 |
-| zenoh-counter-flutter | Flutter app, validates desktop + Android UI | Planned |
+| [zenoh-counter-flutter](https://github.com/hugo-bluecorn/zenoh-counter-flutter) | Flutter app, validates desktop + Android UI | v0.7.0 |
 
 ## Quick Start
 
@@ -170,4 +170,4 @@ ext/
 
 ## License
 
-MIT
+Apache 2.0 -- see [LICENSE](LICENSE).
